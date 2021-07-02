@@ -60,6 +60,7 @@ class EmployeeJS extends BaseJS {
                 contentType: false,
                 processData: false
             }).done(function (res) {
+                debugger
                 if (res) {
                     var data = res.Data.ImportData;
                     me.buildTableHTML(data);

@@ -242,6 +242,7 @@ namespace MISA.ImportDemo.Core.Services
                 Console.WriteLine(headerName);
                 var headerNameRemoveDiacritics = RemoveDiacritics(headerName);
                 var importColumnTemplate = listColumnsTemplate.Where(col => RemoveDiacritics(col.ColumnTitle).Contains(headerNameRemoveDiacritics) && columnIndex == col.ColumnPosition).FirstOrDefault();
+                
                 var address = rangeHeader[1, columnIndex].Address;
 
                 // Không có cột tương ứng được khai báo trong Database: bỏ qua và duyệt tiếp.
@@ -487,12 +488,20 @@ namespace MISA.ImportDemo.Core.Services
                     SetCellValueByColumnInsertWhenTableReference(position, columnInsert, ref cellValue);
                     var positionIdProperty = entity.GetType().GetProperty("PositionId");
                     var positionCodeProperty = entity.GetType().GetProperty("PositionCode");
+                    var positionNameProperty = entity.GetType().GetProperty("PositionName");
+                    var newPosition = entity.GetType().GetProperty("Position");
 
                     if (positionIdProperty != null)
                         positionIdProperty.SetValue(entity, position.PositionId);
 
                     if (positionCodeProperty != null)
                         positionCodeProperty.SetValue(entity, position.PositionCode);
+
+                    if (positionNameProperty != null)
+                        positionNameProperty.SetValue(entity, position.PositionName);
+
+                    if (newPosition != null)
+                        newPosition.SetValue(entity, objectReference);
 
                     break;
                 default:
@@ -636,9 +645,19 @@ namespace MISA.ImportDemo.Core.Services
         protected virtual DateTime? GetProcessDateTimeValue<T>(T entity, object cellValue, Type type, ImportColumn importColumn = null) where T : BaseEntity
         {
             DateTime? dateReturn = null;
-            if (cellValue.GetType() == typeof(double))
-                return DateTime.FromOADate((double)cellValue);
+            //if (cellValue.GetType() == typeof(double))
+            //    return DateTime.FromOADate((double)cellValue);
             var dateString = cellValue.ToString();
+            if (cellValue.GetType() == typeof(double))
+            {
+                var date = Regex.Split(dateString, @"\.-").ToList();
+                while(date.Count() < 3)
+                {
+                    date.Insert(0, "01");
+                }
+                dateString = string.Join('/', date);
+                ////dateString = (new DateTime(int.Parse(dateString), 1, 1)).ToString("dd'/'MM'/'yyyy");
+            }
             // Ngày tháng phải nhập theo định dạng (ngày/tháng/năm): 
             // VD hợp lệ: [25.04.2017] [02.04.2017] [2.4.2017] [25/04/2017] [5/12/2017] [15/2/2017] [25-04-2017]  [6-10-2017]  [16-5-2017] [09/26/2000 12:00:00 AM]  [09/26/2000 12:00:00 PM] 
             Regex dateValidRegex = new Regex(@"^([0]?[1-9]|[1|2][0-9]|[3][0|1])[./-]([0]?[1-9]|[1][0-2])[./-]([0-9]{4}|[0-9]{2})$");

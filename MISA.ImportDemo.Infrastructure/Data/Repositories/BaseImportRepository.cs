@@ -29,6 +29,7 @@ namespace MISA.ImportDemo.Infrastructure.Data.Repositories
         protected readonly List<Ethnic> Ethnics;
         protected List<Position> Positions;
         protected List<Department> Departments;
+
         public BaseImportRepository(IEntityRepository entityRepository, IMemoryCache importMemoryCache)
         {
             _entityRepository = entityRepository;
@@ -97,7 +98,6 @@ namespace MISA.ImportDemo.Infrastructure.Data.Repositories
                 return data;
             });
         }
-
 
         public async Task<List<object>> GetListObjectByTableName(string tableName)
         {
